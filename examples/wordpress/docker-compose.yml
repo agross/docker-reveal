@@ -1,0 +1,44 @@
+version: '3'
+# volumes:
+#  wp:
+
+services:
+  mariadb:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    volumes:
+      - ./wp/mariadb/conf:/etc/mysql/conf.d:ro
+      - ./wp/mariadb/data:/var/lib/mysql
+      # - wp:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:php7.0
+
+    # Duplicate some settings from the wordpress docker image for the sake of starting up only after MariaDB is up.
+    entrypoint: /wait-for-it.sh --strict --timeout=90 db:3306 -- /usr/local/bin/docker-entrypoint.sh
+    command: apache2-foreground
+
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_PASSWORD: secret
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - ./wp/app/wp-content:/var/www/html/wp-content
+      # Support waiting for MariaDB.
+      - ./wait-for-it/wait-for-it.sh:/wait-for-it.sh:ro
+    # Define 'db' alias for the mariadb service.
+    links:
+      - mariadb:db
+    # Defines startup order only.
+    depends_on:
+      - mariadb
+      - smtp
+
+  smtp:
+    image: mwader/postfix-relay
+    restart: always
+    environment:
+      POSTFIX_myhostname: example.com

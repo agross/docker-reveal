@@ -1,0 +1,4 @@
+[submodule "wait-for-it"]
+	path = examples/wordpress/wait-for-it
+	url = https://github.com/vishnubob/wait-for-it.git
+	branch = master
