@@ -11,6 +11,6 @@
   ],
   "markdown.trace": "verbose",
   "markdown-pdf.displayHeaderFooter": true,
-  "markdown-pdf.headerTemplate": "leer",
-  "markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
+  "markdown-pdf.headerTemplate": "empty",
+  "markdown-pdf.footerTemplate": "<footer style=\"font-size: 10px; margin: 0 auto;\">Page <span class='pageNumber'></span> of <span class='totalPages'></span></footer>",
 }
