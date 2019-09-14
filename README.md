@@ -276,6 +276,7 @@ docker run -v <local path>:<container path> <image>
 1. Run only one process per container
 1. Minimize the number of layers
 1. Sort multi-line arguments and indent 4 spaces:
+
    ```dockerfile
    RUN apt-get update && apt-get install --yes \
        cvs \
@@ -283,15 +284,19 @@ docker run -v <local path>:<container path> <image>
        mercurial \
        subversion
    ```
+
 1. `FROM`: Use current official repositories
 1. `RUN`: Split long or complex `RUN` statements across multiple lines separated
+
    ```dockerfile
    RUN command-1 && \
        command-2 && \
        command-3
    ```
+
 1. Avoid distribution updates à la `RUN apt-get upgrade`
 1. Use the JSON array format for `CMD` to prevent an additional shell as PID 1
+
    ```dockerfile
    CMD ["executable", "param1", "param2", "..."]
    CMD ["apache2", "-DFOREGROUND"]
@@ -299,11 +304,13 @@ docker run -v <local path>:<container path> <image>
    CMD ["python"]
    CMD ["php", "-a"]
    ```
+
 1. Use `ENTRYPOINT` only when required
 1. `EXPOSE` the usual ports for your applications
 1. Prefer `COPY` over `ADD`
 1. Leverage the build cache, disable if necessary:
    `docker build --no-cache=true -t <image>[:<tag>] .`
+
    ```dockerfile
    # Will use cache unless requirements.txt change.
    COPY requirements.txt /tmp/
@@ -311,8 +318,10 @@ docker run -v <local path>:<container path> <image>
    # Will use cache unless any file changes.
    COPY . /tmp/
    ```
+
 1. Do not use `ADD` to download files, although it's possible. Use `RUN` with
    `curl`, `unzip/...` and `rm` instead to keep images small:
+
    ```dockerfile
    # Bad - 3 layers.
    ADD http://example.com/big.tar.xz /usr/src/things/
@@ -325,9 +334,12 @@ docker run -v <local path>:<container path> <image>
          | tar -xJC /usr/src/things \
        && make -C /usr/src/things all
    ```
+
 1. Use [`gosu`](https://github.com/tianon/gosu) when required to run as non-root
 1. Have integration tests
 1. Build the `Dockerfile` in a running container, REPL-style
+1. Include a `HEALTHCHECK` in the Dockerfile or run containers with
+   `--health-{cmd,interval,timeout,retries}`
 
 Commands shown:
 
@@ -513,7 +525,7 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. Restart the WordPress container to see if your installation was persisted
 1. Congratulations, you just emulated `docker-compose`!
 
-## `docker-compose` use-cases
+### `docker-compose` use-cases
 
 1. Development environments:
    * Running web apps in an isolated environment is crucial
@@ -527,7 +539,7 @@ docker run -d -v <name>:<mount point> <image> <command>
    * Passwords are near-meaningless
    * Services do not interfere
 
-## Features
+### Features
 
 1. `docker-compose` creates a per-composition network by default, named after
    the current directory (unless `docker-compose -p <name> ...` is specified).
@@ -538,28 +550,78 @@ docker run -d -v <name>:<mount point> <image> <command>
    create a container.
 1. Variables in the `docker-compose.yml` file can be used to customize the
    composition for different environments.
+
    ```docker-compose
    web:
      ports:
        - "${EXTERNAL_PORT}:5000"
    ```
+
 1. [Override settings for different environments](https://docs.docker.com/compose/extends/#example-use-case),
    e.g. `production.yml` containing changes specific for production:
+
    ```sh
    docker-compose -f docker-compose.yml -f production.yml up -d
    ```
+
 1. You can scale services with `docker-compose scale <service>=<instances>`
 
 ### Exercise 12 - WordPress using `docker-compose`
 
+Since WordPress cannot run without a database connection we need to ensure that
+the database is ready to accept connections before WordPress starts. But Docker
+does not really care about startup order and service readiness. There are
+several solutions to this problem. Some involve using external tools like:
+
+ * wait-for-it.sh [https://github.com/vishnubob/wait-for-it](https://github.com/vishnubob/wait-for-it) or
+ * dockerize [https://github.com/jwilder/dockerize](https://github.com/jwilder/dockerize).
+
+ Using these external tools require you to change a container's `ENTRYPOINT` or
+ `CMD` (depending on how the image defines those). This change involves defining
+ the dependency using the external tool and also telling the external tool what
+ it means to start e.g. WordPress.
+
+ Docker's builtin method, which is only available to `docker-compose.yaml` files
+ using `version: 2` (i.e. `2.x`), is to define a `HEALTHCHECK`-based dependency.
+ Here the dependent container (database) must define healthiness and the
+ depending container (WordPress) can then define its dependency to be satisfied
+ if the dependent is healthy.
+
+ ```docker-compose
+ version: '2.3'
+ services
+  db:
+    image: mysql
+
+    # MySQL does not come with a HEALTHCHECK, so we need to define our own.
+    healthcheck:
+      # This check tests weather MySQL is ready to accept connections.
+      test: ["CMD", "mysql", "--user", "root", "--password=secret", "--execute", "SELECT 1;"]
+      # Allow 15 seconds for MySQL initialization before running the first check.
+      start_period: 15s
+
+  app:
+    image: wordpress
+
+    # Start the WordPress container after the database is healthy.
+    depends_on:
+      db:
+        condition: service_healthy
+ ```
+
+You may use either method in the next exercise.
+
 1. Create a directory `my-wordpress` and enter it
 1. Download `wait-for-it.sh` from [https://github.com/vishnubob/wait-for-it](https://github.com/vishnubob/wait-for-it)
   to [allow waiting for services to be ready](https://docs.docker.com/compose/startup-order/):
+
    ```sh
    git clone https://github.com/vishnubob/wait-for-it.git
    ```
+
 1. Create a new `docker-compose.yml`
 1. Paste the following:
+
    ```docker-compose
    version: '3'
    services:
@@ -602,6 +664,7 @@ docker run -d -v <name>:<mount point> <image> <command>
        environment:
          POSTFIX_myhostname: example.com
    ```
+
 1. Run `docker-compose up`
 1. Create a new WordPress site
 1. Inspect running docker containers. What do you see?
@@ -612,6 +675,7 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. Have the composition from Exercise 11 running
 1. Change `docker-compose.yml` such that the `php7.1` tag is used for `wordpress`
 1. Rebuild and restart the WordPress container:
+
    ```sh
    docker-compose up --no-deps -d wordpress
    ```
@@ -636,10 +700,12 @@ docker run -d -v <name>:<mount point> <image> <command>
 
 1. Stop the service from Exercise 11 (`docker-compose stop`)
 1. Add a new top-level section:
+
    ```docker-compose
    volumes:
      wp:
    ```
+
 1. Replace `- ./wp/mariadb/data:/var/lib/mysql` with a volume:
    Make the line above read `- wp:/var/lib/mysql`
 1. Start the service again
@@ -657,7 +723,6 @@ docker run -d -v <name>:<mount point> <image> <command>
 
 * Built-in cluster
 * There are alternatives like [Kubernetes](https://kubernetes.io/)
-
 * Docker engines newer than 17.03 may create a new swarm:  `docker swarm init`
 * Swarm members can be managers or workers (managers are workers too)
 * 3-5 managers are recommended (more increases Raft communication and consensus finding)

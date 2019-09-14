@@ -1,0 +1,16 @@
+{
+  "markdown-pdf.styles": [
+    "D:\\Users\\agross\\Documents\\Dokumente\\Talks\\docker\\.vscode\\markdown-pdf.css",
+    "~/Nextcloud/Documents/Talks/docker/.vscode/markdown-pdf.css"
+  ],
+  "markdown-pdf.stylesRelativePathFile": true,
+  "markdown-pdf.convertOnSave": true,
+  "markdown-pdf.type": [
+    "pdf",
+    "html"
+  ],
+  "markdown.trace": "verbose",
+  "markdown-pdf.displayHeaderFooter": true,
+  "markdown-pdf.headerTemplate": "leer",
+  "markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
+}

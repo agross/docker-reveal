@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans&display=swap');
+
+body {
+  margin: 0 auto;
+  font-family: "Noto Sans";
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:not(h1) + h2 {
+  page-break-before: always;
+}
+
+ol ul,
+ol ol {
+  padding-left: 16px;
+}
+
+li p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+img {
+  max-width: 60%;
+}
+
+:not(pre) > code {
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+  border-radius: 2px;
+  padding: 2px;
+}
