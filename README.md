@@ -506,20 +506,24 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. Create a new network for both apps
 1. Run a MariaDB container on the network from step 2 and inject some
    environment variables:
+
    ```sh
    MYSQL_ROOT_PASSWORD=secret
    MYSQL_DATABASE=wordpress
    MYSQL_USER=wordpress
    MYSQL_PASSWORD=wordpress
    ```
+
    Is there a better way than multiple `--env` parameters? Hint: Use a file.
 1. Run WordPress on the network from step 2 and tell it where it can find the
-   SQL server:
+   database server:
+
    ```sh
    WORDPRESS_DB_HOST=<mariadb container name>:3306
    WORDPRESS_DB_USER=wordpress
    WORDPRESS_DB_PASSWORD=wordpress
    ```
+
 1. Browse http://localhost and create a WordPress site. Did you forget to
    publish ports? ;-)
 1. Restart the WordPress container to see if your installation was persisted
@@ -544,11 +548,11 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. `docker-compose` creates a per-composition network by default, named after
    the current directory (unless `docker-compose -p <name> ...` is specified).
 1. When `docker-compose up` runs it finds any containers from previous runs and
-   copies the *volumes* from the old container to the new container.
+   reuses the *volumes* from the old container (i.e. data is restored).
 1. When a service restarts and nothing has changed, `docker-compose` reuses
-   existing containers because it caches the configuration that was used to
+   existing containers because it caches the configuration bits that were used to
    create a container.
-1. Variables in the `docker-compose.yml` file can be used to customize the
+1. Variables in the `docker-compose.yaml` file can be used to customize the
    composition for different environments.
 
    ```docker-compose
@@ -582,7 +586,7 @@ several solutions to this problem. Some involve using external tools like:
  it means to start e.g. WordPress.
 
  Docker's builtin method, which is only available to `docker-compose.yaml` files
- using `version: 2` (i.e. `2.x`), is to define a `HEALTHCHECK`-based dependency.
+ using `version: 2` (e.g `2.x`), is to define a `HEALTHCHECK`-based dependency.
  Here the dependent container (database) must define healthiness and the
  depending container (WordPress) can then define its dependency to be satisfied
  if the dependent is healthy.
@@ -612,33 +616,33 @@ several solutions to this problem. Some involve using external tools like:
 You may use either method in the next exercise.
 
 1. Create a directory `my-wordpress` and enter it
-1. Download `wait-for-it.sh` from [https://github.com/vishnubob/wait-for-it](https://github.com/vishnubob/wait-for-it)
-  to [allow waiting for services to be ready](https://docs.docker.com/compose/startup-order/):
-
-   ```sh
-   git clone https://github.com/vishnubob/wait-for-it.git
-   ```
-
-1. Create a new `docker-compose.yml`
-1. Paste the following:
+1. Create a new `docker-compose.yaml`
+1. Paste the [following](examples/wordpress/docker-compose-healthiness.yaml):
 
    ```docker-compose
-   version: '3'
+   # Version 2 supports dependencies with healthiness checks, but not docker swarm.
+   version: '2.4'
+
    services:
      mariadb:
        image: mariadb
        environment:
          MYSQL_ROOT_PASSWORD: secret
        volumes:
-         - ./wp/mariadb/conf:/etc/mysql/conf.d:ro
-         - ./wp/mariadb/data:/var/lib/mysql
+         - ./wp/db/conf:/etc/mysql/conf.d:ro
+         - ./wp/db/data:/var/lib/mysql
+
+       # Required to because of "condition: service_healthy" below.
+       healthcheck:
+         test: ["CMD", "mysql", "-uroot", "-psecret", "-e", "SELECT 1;"]
+         start_period: 5s
 
      wordpress:
        image: wordpress:php7.0
 
-       # Duplicate some settings from the wordpress docker image for the sake of starting up only after MariaDB is up.
-       entrypoint: /wait-for-it.sh --strict --timeout=90 db:3306 -- /usr/local/bin/docker-entrypoint.sh
-       command: apache2-foreground
+       # Define "db" alias for the mariadb service.
+       links:
+         - mariadb:db
 
        environment:
          WORDPRESS_DB_HOST: db
@@ -647,16 +651,14 @@ You may use either method in the next exercise.
          - 80:80
        restart: always
        volumes:
-         - ./wp/app/wp-content:/var/www/html/wp-content
-         # Support waiting for MariaDB.
-         - ./wait-for-it/wait-for-it.sh:/wait-for-it.sh:ro
-       # Define 'db' alias for the mariadb service.
-       links:
-         - mariadb:db
-       # Defines startup order only.
+         - ./wp/data:/var/www/html/wp-content
+
+       # Define startup order.
        depends_on:
-         - mariadb
-         - smtp
+         mariadb:
+           condition: service_healthy
+         smtp:
+           condition: service_started
 
      smtp:
        image: mwader/postfix-relay
@@ -673,7 +675,7 @@ You may use either method in the next exercise.
 ### Exercise 13 - Upgrade WordPress to use PHP 7.1
 
 1. Have the composition from Exercise 11 running
-1. Change `docker-compose.yml` such that the `php7.1` tag is used for `wordpress`
+1. Change `docker-compose.yaml` such that the `php7.1` tag is used for `wordpress`
 1. Rebuild and restart the WordPress container:
 
    ```sh
@@ -703,18 +705,21 @@ You may use either method in the next exercise.
 
    ```docker-compose
    volumes:
-     wp:
+     wp-db-conf:
+     wp-db-data:
+     wp-data:
    ```
 
-1. Replace `- ./wp/mariadb/data:/var/lib/mysql` with a volume:
-   Make the line above read `- wp:/var/lib/mysql`
+1. [Change all `volumes:` to use volume mounts instead of bind mounts](examples/wordpress/docker-compose-healthiness-volumes.yaml).
+   E.g. `- ./wp/mariadb/data:/var/lib/mysql` becomes `- wp-db-data:/var/lib/mysql`
 1. Start the service again
-1. Browse http://localhost. Is the WordPress site still available? Why?
+1. Browse http://localhost. Is the WordPress site still available? Why? What
+   should have been done in addition to changing the configuration?
 
 ### Exercise 17 - Locally build composition
 
 1. Assume `agross/hello` needs a database
-1. Can you think of a `docker-compose.yml` file that builds a composition of
+1. Can you think of a `docker-compose.yaml` file that builds a composition of
    `agross/hello`'s source
    code at [https://github.com/agross/docker-hello](https://github.com/agross/docker-hello)
    and e.g. MariaDB?

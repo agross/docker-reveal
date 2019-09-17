@@ -1,0 +1,52 @@
+
+# Version 2 supports dependencies with healthiness checks, but not docker swarm.
+version: '2.4'
+
+volumes:
+  wp-db-conf:
+  wp-db-data:
+  wp-data:
+
+services:
+  mariadb:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    volumes:
+      # Use volume mounts (see above).
+      - wp-db-conf:/etc/mysql/conf.d:ro
+      - wp-db-data:/var/lib/mysql
+
+    # Required to because of "condition: service_healthy" below.
+    healthcheck:
+      test: ["CMD", "mysql", "-uroot", "-psecret", "-e", "SELECT 1;"]
+      start_period: 5s
+
+  wordpress:
+    image: wordpress:php7.0
+
+    # Define "db" alias for the mariadb service.
+    links:
+      - mariadb:db
+
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_PASSWORD: secret
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - wp-data:/var/www/html/wp-content
+
+    # Define startup order.
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      smtp:
+        condition: service_started
+
+  smtp:
+    image: mwader/postfix-relay
+    restart: always
+    environment:
+      POSTFIX_myhostname: example.com
