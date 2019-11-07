@@ -632,7 +632,7 @@ You may use either method in the next exercise.
          - ./wp/db/conf:/etc/mysql/conf.d:ro
          - ./wp/db/data:/var/lib/mysql
 
-       # Required to because of "condition: service_healthy" below.
+       # Required because of "condition: service_healthy" below.
        healthcheck:
          test: ["CMD", "mysql", "-uroot", "-psecret", "-e", "SELECT 1;"]
          start_period: 5s
