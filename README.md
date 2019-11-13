@@ -475,6 +475,7 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. Stop nginx
 1. Write a nginx config file (`hello.conf`) that uses `one` and `two` as
    upstreams:
+
    ```conf
    upstream hello {
      server one:8080;
@@ -489,10 +490,12 @@ docker run -d -v <name>:<mount point> <image> <command>
    }
    ```
 1. Restart nginx, this time with the conf above bind-mounted to
-   `/etc/nginx/conf.d/hello.conf`
+   `/etc/nginx/conf.d/default.conf`
+
    ```sh
-   docker run -d --name nginx --network hello -p 80:80 -v $PWD:/etc/nginx/conf.d/ nginx
+   docker run -d --name nginx --network hello -p 80:80 -v $PWD/hello.conf:/etc/nginx/conf.d/default.conf nginx
    ```
+
 1. Browse http://localhost again and refresh a few times
 
 ## Multi-container apps
