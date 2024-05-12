@@ -532,7 +532,7 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. Restart the WordPress container to see if your installation was persisted
 1. Congratulations, you just emulated `docker-compose`!
 
-### `docker-compose` use-cases
+### `docker compose` use-cases
 
 1. Development environments:
    * Running web apps in an isolated environment is crucial
@@ -548,17 +548,17 @@ docker run -d -v <name>:<mount point> <image> <command>
 
 ### Features
 
-1. `docker-compose` creates a per-composition network by default, named after
-   the current directory (unless `docker-compose -p <name> ...` is specified).
-1. When `docker-compose up` runs it finds any containers from previous runs and
+1. `docker compose` creates a per-composition network by default, named after
+   the current directory (unless `docker compose -p <name> ...` is specified).
+1. When `docker compose up` runs it finds any containers from previous runs and
    reuses the *volumes* from the old container (i.e. data is restored).
-1. When a service restarts and nothing has changed, `docker-compose` reuses
+1. When a service restarts and nothing has changed, `docker compose` reuses
    existing containers because it caches the configuration bits that were used to
    create a container.
 1. Variables in the `docker-compose.yaml` file can be used to customize the
    composition for different environments.
 
-   ```docker-compose
+   ```yaml
    web:
      ports:
        - "${EXTERNAL_PORT}:5000"
@@ -568,12 +568,12 @@ docker run -d -v <name>:<mount point> <image> <command>
    e.g. `production.yml` containing changes specific for production:
 
    ```sh
-   docker-compose -f docker-compose.yml -f production.yml up -d
+   docker compose -f docker-compose.yml -f production.yml up -d
    ```
 
 1. You can scale services with `docker-compose scale <service>=<instances>`
 
-### Exercise 12 - WordPress using `docker-compose`
+### Exercise 12 - WordPress using `docker compose`
 
 Since WordPress cannot run without a database connection we need to ensure that
 the database is ready to accept connections before WordPress starts. But Docker
@@ -594,9 +594,8 @@ several solutions to this problem. Some involve using external tools like:
  depending container (WordPress) can then define its dependency to be satisfied
  if the dependent is healthy.
 
- ```docker-compose
- version: '2.3'
- services
+ ```yaml
+ services:
   db:
     image: mysql
 
@@ -622,10 +621,7 @@ You may use either method in the next exercise.
 1. Create a new `docker-compose.yaml`
 1. Paste the [following](examples/wordpress/docker-compose-healthiness.yaml):
 
-   ```docker-compose
-   # Version 2 supports dependencies with healthiness checks, but not docker swarm.
-   version: '2.4'
-
+   ```yaml
    services:
      mariadb:
        image: mariadb
@@ -670,7 +666,7 @@ You may use either method in the next exercise.
          POSTFIX_myhostname: example.com
    ```
 
-1. Run `docker-compose up`
+1. Run `docker compose up`
 1. Create a new WordPress site
 1. Inspect running docker containers. What do you see?
 1. Inspect docker networks. What do you see?
@@ -682,13 +678,13 @@ You may use either method in the next exercise.
 1. Rebuild and restart the WordPress container:
 
    ```sh
-   docker-compose up --no-deps -d wordpress
+   docker compose up --no-deps -d wordpress
    ```
 
 ### Exercise 14 - Maintain your environment
 
 1. Scale `mariadb` to 2 instances
-1. Step into `mariadb` using `docker-compose exec`. In which instance did you
+1. Step into `mariadb` using `docker compose exec`. In which instance did you
    step?
 1. Restart the composition. How many `mariadb` instances are there?
 1. Pause and unpause the application
@@ -703,10 +699,10 @@ You may use either method in the next exercise.
 
 ### Exercise 16 - Switch to volume
 
-1. Stop the service from Exercise 11 (`docker-compose stop`)
+1. Stop the service from Exercise 11 (`docker compose stop`)
 1. Add a new top-level section:
 
-   ```docker-compose
+   ```yaml
    volumes:
      wp-db-conf:
      wp-db-data:
@@ -742,7 +738,7 @@ You may use either method in the next exercise.
 * Show tasks with `docker service ps`
 * Services can be updated, e.g. specify new arguments
 * Rolling updates are supported
-* Stacks abstract service definitions even further, comparable to `docker-compose`
+* Stacks abstract service definitions even further, comparable to `docker compose`
 
 ![](img/14-swarm-services.png)
 

@@ -1,7 +1,3 @@
-
-# Version 2 supports dependencies with healthiness checks, but not docker swarm.
-version: '2.4'
-
 volumes:
   wp-db-conf:
   wp-db-data:

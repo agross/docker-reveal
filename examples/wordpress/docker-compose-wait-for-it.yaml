@@ -1,7 +1,3 @@
-# Version 3 does not support dependencies with healthiness checks,
-# but docker swarm.
-version: '3'
-
 services:
   mariadb:
     image: mariadb
