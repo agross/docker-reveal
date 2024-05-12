@@ -588,19 +588,19 @@ the database is ready to accept connections before WordPress starts. But Docker
 does not really care about startup order and service readiness. There are
 several solutions to this problem. Some involve using external tools like:
 
- * wait-for-it.sh [https://github.com/vishnubob/wait-for-it](https://github.com/vishnubob/wait-for-it) or
- * dockerize [https://github.com/jwilder/dockerize](https://github.com/jwilder/dockerize).
+* wait-for-it.sh [https://github.com/vishnubob/wait-for-it](https://github.com/vishnubob/wait-for-it) or
+* dockerize [https://github.com/jwilder/dockerize](https://github.com/jwilder/dockerize).
 
- Using these external tools require you to change a container's `ENTRYPOINT` or
- `CMD` (depending on how the image defines those). This change involves defining
- the dependency using the external tool and also telling the external tool what
- it means to start e.g. WordPress.
+Using these external tools require you to change a container's `ENTRYPOINT` or
+`CMD` (depending on how the image defines those). This change involves defining
+the dependency using the external tool and also telling the external tool what
+it means to start e.g. WordPress.
 
- Docker's builtin method, which is only available to `docker-compose.yaml` files
- using `version: 2` (e.g `2.x`), is to define a `HEALTHCHECK`-based dependency.
- Here the dependent container (database) must define healthiness and the
- depending container (WordPress) can then define its dependency to be satisfied
- if the dependent is healthy.
+Docker's builtin method, which is only available to `docker-compose.yaml` files
+using `version: 2` (e.g `2.x`), is to define a `HEALTHCHECK`-based dependency.
+Here the dependent container (database) must define healthiness and the
+depending container (WordPress) can then define its dependency to be satisfied
+if the dependent is healthy.
 
  ```yaml
  services:
