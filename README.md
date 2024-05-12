@@ -157,7 +157,7 @@ docker rmi <image>
 
 * Runtime construct
 * Get an auto-generated name assigned unless `docker run --name <name>`
-* Writing is possible, adding a new container-specific layer
+* File system modifications happen in the container-specific writable layer
 * Root process gets PID 1, container exits when PID 1 exits
   * Further control with `docker stop` (sends `SIGTERM` to PID 1), `docker kill`
     (sends `SIGKILL` to PID 1) and `docker restart`
@@ -169,8 +169,8 @@ docker rmi <image>
 
   which are realized using Kernel Namespaces
 * Kernel `cgroup`s are used to limit resource usage (CPU, network, etc.)
-* Kernel capabilities can be used to give a container more permissions, e.g.
-  bind to low-numbered port
+* Kernel capabilities can be used to give a container more or less permissions,
+  e.g. bind to low-numbered port
 * PID 1 is most often *not* `init`, so child processes are not terminated
   gracefully
 * You need to cater for PID 1 processes that start other processes
