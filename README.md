@@ -473,9 +473,11 @@ docker run -d -v <name>:<mount point> <image> <command>
 1. Inspect the `hello` network
 1. Step into either `one` or `two` and try to `ping` the other
 1. Run nginx on the `hello` network
+
    ```sh
    docker run --rm -d --name nginx --network hello -p 80:80 nginx
    ```
+
 1. Browse http://localhost to verify that nginx is working
 1. Stop nginx
 1. Write a nginx config file (`hello.conf`) that uses `one` and `two` as
@@ -494,6 +496,7 @@ docker run -d -v <name>:<mount point> <image> <command>
      }
    }
    ```
+
 1. Restart nginx, this time with the conf above bind-mounted to
    `/etc/nginx/conf.d/default.conf`
 
