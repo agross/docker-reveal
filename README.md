@@ -235,16 +235,15 @@ docker run -v <local path>:<container path> <image>
 
 ![](img/12-Dockerfile.png)
 
-* Plain-text file named `Dockerfile` (casing!)
-* Defines how to build of an image
-* Requires `FROM <base image>[:<tag>]` (which can be `scratch`) as the first
-  non-comment line
+* Plain-text file named `Dockerfile` (casing matters!)
+* Defines how to build an image
+* Requires `FROM <base image>[:<tag>]` (which can be `scratch`)
 * Allows to specify e.g.:
-  * Define `MAINTAINER` (better: `LABEL maintainer "<name and email>"`)
+  * Define metadata using labels (`LABEL maintainer "<name and email>"`)
   * Files to be copied to the image: `COPY`, `ADD`
   * Additional packages to be installed: `RUN`
   * Define published ports: `EXPOSE`
-  * Bind-mounted directories and volumes: `VOLUMES`
+  * Automatically-created volumes: `VOLUMES`
   * User running PID 1: `USER`
   * Define environment variables: `ENV`
   * Process running PID 1: `ENTRYPOINT`, `CMD`
@@ -252,15 +251,14 @@ docker run -v <local path>:<container path> <image>
 * Each line == one image layer (i.e. `docker commit` after each line)
 * Build intermediates are cached locally, using checksums for `COPY` and `ADD`,
   `RUN` is cached based on line following `RUN`
-* Build can be parameterized using build context, example: [https://github.com/agross/docker-teamcity-custom/blob/master/Dockerfile#L4-L6](https://github.com/agross/docker-teamcity-custom/blob/master/Dockerfile#L4-L6)
-* [Example](https://github.com/agross/docker-teamcity/blob/master/Dockerfile): https://github.com/agross/docker-teamcity/blob/master/Dockerfile
-* [Reference](https://docs.docker.com/engine/reference/builder/): https://docs.docker.com/engine/reference/builder/
+* Build can be parameterized using build context directory and `BUILD_ARG`s
+* To reduce the size of the build context, use `.dockerignore` files
 
 ### `ENTRYPOINT` statement
 
 * Allows you to specify default arguments unless some are provided on the
   command line with `docker run <image> <args>`
-* [Example Dockerfile](https://github.com/agross/docker-teamcity/blob/master/Dockerfile#L44-L45) and [`ENTRYPOINT` script](https://github.com/agross/docker-teamcity/blob/master/docker-entrypoint.sh)
+* [Example Dockerfile](https://github.com/agross/docker-teamcity/blob/master/Dockerfile#L5-L6) and [`ENTRYPOINT` script](https://github.com/agross/docker-teamcity/blob/master/docker-entrypoint.sh)
 * Here `./docker-entrypoint.sh teamcity-server run` is the default
 * But you may also run `docker run -it agross/teamcity bash`
 
@@ -272,10 +270,10 @@ docker run -v <local path>:<container path> <image>
 1. Reuse base images across your organization
 1. Use tagged base images
 1. Use tagged app images
-1. Group common operations
-1. Avoid installing unnecessary packages
-1. Clean up after yourself in the same e.g. `RUN` statement
-1. Run only one process per container
+1. Group common operations into a single layer
+1. Avoid installing unnecessary packages or keeping temporary files
+1. Clean up after yourself in the same `RUN` statement
+1. Run only one process per container (try to avoid `supervisord` and the like)
 1. Minimize the number of layers
 1. Sort multi-line arguments and indent 4 spaces:
 
@@ -339,9 +337,12 @@ docker run -v <local path>:<container path> <image>
 
 1. Use [`gosu`](https://github.com/tianon/gosu) when required to run as non-root
 1. Have integration tests
-1. Build the `Dockerfile` in a running container, REPL-style
+1. Develop the `Dockerfile` in a running container, REPL-style
 1. Include a `HEALTHCHECK` in the Dockerfile or run containers with
    `--health-{cmd,interval,timeout,retries}`
+1. Define directories that will contain persistent data with `VOLUME`s
+1. Use multi-stage builds if you have SDK requirements for the build that you do
+   not need for production
 
 Commands shown:
 
@@ -379,10 +380,12 @@ docker port <container>
 
 1. Stop container from Exercise 5
 1. Create a new file `index.jade` in the current directory:
+
    ```jade
    html
      body Content from the host
    ```
+
 1. Start a new container, but overlay the `/app/views/` directory with the
    directory that contains the `index.jade` file above
 1. Refresh browser and check if "Content from the host" is displayed
