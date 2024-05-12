@@ -35,42 +35,44 @@
 ![](img/08-big-picture.png)
 
 * Docker Engine runs containers
-  * Listens to local UNIX socket by default
+  * Listens to local UNIX socket by default (`/var/run/docker.sock`)
 * We interact with the Docker Client which talks to a local or remote Docker
   Engine
   * `export DOCKER_HOST=...` to talk to remote engine listening on TCP port
   * Add users to `docker` group to allow non-root users access to the docker
     UNIX socket
-* macOS and Windows < 10 Anniversary Update require an extra VM
-  * macOS comes with a lightweight HyperKit VM named `moby`
-  * Windows < 10 uses VirtualBox with `docker-machine`
-  * Additional VMs may be created with `docker-machine` on macOS
+  * The client provides entrypoints to the engine's features, e.g. for image
+    handling through `docker image <command>` and container handling through
+    `docker container <command>`. There are legacy commands that still can be
+    used, e. g. `docker pull` == `docker image pull` and `docker run` ==
+    `docker container run`.
 
 ```sh
 $ docker --version
-Docker version 17.06.0-ce, build 02c1d87
+Docker version 26.0.0, build 2ae903e
 
 $ docker info
-Containers: 1
- Running: 0
- Paused: 0
- Stopped: 1
-Images: 1
-Server Version: 17.06.0-ce
-Storage Driver: aufs
- Root Dir: /var/lib/docker/aufs
- Backing Filesystem: extfs
-...
+Client: Docker Engine - Community
+ Version:    26.0.0
+ Context:    default
+ Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.13.1
+    Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.25.0
+    Path:     /usr/libexec/docker/cli-plugins/docker-compose
 
-$ docker network ls
-NETWORK ID          NAME                DRIVER              SCOPE
-af51c4b1f357        bridge              bridge              local
-89d3d7fce094        host                host                local
-721382e63bb2        none                null                local
-
-$ docker-machine ls
-NAME      ACTIVE   DRIVER       STATE     URL   SWARM   DOCKER    ERRORS
-docker2   -        virtualbox   Stopped                 Unknown
+Server:
+ Containers: 51
+  Running: 49
+  Paused: 0
+  Stopped: 2
+ Images: 49
+ Server Version: 26.0.0
+ Storage Driver: overlay2
+  Backing Filesystem: xfs...
 ```
 
 Commands shown:
