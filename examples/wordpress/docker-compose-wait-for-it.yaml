@@ -2,7 +2,7 @@ services:
   mariadb:
     image: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: secret
+      MARIADB_ROOT_PASSWORD: secret
     volumes:
       # Use bind mounts.
       - ./wp/mariadb/conf:/etc/mysql/conf.d:ro

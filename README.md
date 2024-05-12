@@ -511,10 +511,10 @@ docker run -d -v <name>:<mount point> <image> <command>
    environment variables:
 
    ```sh
-   MYSQL_ROOT_PASSWORD=secret
-   MYSQL_DATABASE=wordpress
-   MYSQL_USER=wordpress
-   MYSQL_PASSWORD=wordpress
+   MARIADB_ROOT_PASSWORD=secret
+   MARIADB_DATABASE=wordpress
+   MARIADB_USER=wordpress
+   MARIADB_PASSWORD=wordpress
    ```
 
    Is there a better way than multiple `--env` parameters? Hint: Use a file.
@@ -626,15 +626,16 @@ You may use either method in the next exercise.
      mariadb:
        image: mariadb
        environment:
-         MYSQL_ROOT_PASSWORD: secret
+         MARIADB_ROOT_PASSWORD: secret
        volumes:
          - ./wp/db/conf:/etc/mysql/conf.d:ro
          - ./wp/db/data:/var/lib/mysql
 
        # Required because of "condition: service_healthy" below.
        healthcheck:
-         test: ["CMD", "mysql", "-uroot", "-psecret", "-e", "SELECT 1;"]
+         test: ["CMD", "mariadb", "-uroot", "-psecret", "-e", "SELECT 1;"]
          start_period: 5s
+         interval: 5s
 
      wordpress:
        image: wordpress:php7.0
