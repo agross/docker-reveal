@@ -95,23 +95,22 @@ docker pull <image:tag>
 
 ![](img/07-repos.png)
 
-* Images are blueprints for containers
+* Images are sharable blueprints for containers
 * Images provide the root file system for containers
 * Containers are created from images
-  * Images can be thought of as stopped containers
-* Each of these can be addressed by `ID` (e.g. `15895ef0b3b2`) or `name:tag`
+* Images can be thought of as stopped containers
+* An image can be addressed by `ID` (e.g. `15895ef0b3b2`) or `name:tag`
   (e.g. `fedora:latest`)
 * Containers share images, e.g. if you create 2 containers from 1 image, the
-  image will be reused
+  image will be reused and not downloaded again
 * Images are composed of read-only layers
-* Modified files cause a new leayer to be created which is per-container and
-  read/write
-  * ~ Copy-on-write file system
-* Provides isolation per container
-* Immutability is king
+* File modifications made by the container cause changes in the writeable layer
+  for that specific container (~ Copy-on-write file system)
+* This provides isolation per container
+* Immutability is king (almost anywhere in docker)
 * Images can be created on one machine and run on another machine, e.g.
   1. Create images in CI
-  1. `docker push` to internal registry
+  1. `docker push` to internal image registry
   1. Deploy to production servers using `docker pull`/`docker run`
 
 ## Images
@@ -121,8 +120,9 @@ docker pull <image:tag>
 * Definition construct
 * Read-only
 * Mostly bare-bones (depends on image, OS images don't have all usual commands
-  installed like ping)
-* Special container Linux images, e.g. Alpine Linux which is just 5 MB
+  installed like `ping`)
+* Special container Linux images, e.g. Alpine Linux which is just 5 MB or
+  single-binary [Go](https://go.dev/) images
 * Comprised of layers
 * Downloaded from a registry, e.g. [hub.docker.com](https://hub.docker.com)
 * Stored locally in `/var/lib/docker` (depending on storage driver)
